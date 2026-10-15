@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ subscription.name }}{% endblock %}
+{% block content %}
+  <a class="back-link" href="{{ url_for('home') }}">← Back to overview</a>
+  <section class="detail-heading">
+    <div class="detail-title">
+      <span class="service-icon service-icon-large">{{ subscription.name[:1]|upper }}</span>
+      <div>
+        <p class="eyebrow">{{ subscription.category or "SUBSCRIPTION" }}</p>
+        <h1>{{ subscription.name }}</h1>
+        <span class="status-pill {% if not subscription.active %}status-inactive{% endif %}">{{ "Active" if subscription.active else "Cancelled" }}</span>
+      </div>
+    </div>
+    <div class="detail-actions">
+      <a class="button button-secondary" href="{{ url_for('edit_subscription', subscription_id=subscription.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('toggle_subscription_status', subscription_id=subscription.id) }}">
+        <button class="button {{ 'button-secondary' if subscription.active else '' }}" type="submit">{{ "Cancel subscription" if subscription.active else "Reactivate" }}</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="detail-grid">
+    <article class="detail-card">
+      <span class="summary-label">Plan price</span>
+      <strong class="detail-value">{{ subscription.currency }} {{ "%.2f"|format(subscription.amount) }}</strong>
+      <span class="summary-foot">billed {{ subscription.frequency }}</span>
+    </article>
+    <article class="detail-card">
+      <span class="summary-label">Next renewal</span>
+      <strong class="detail-value">{{ subscription.next_due.strftime("%b %d, %Y") }}</strong>
+      <span class="summary-foot">
+        {% set days = (subscription.next_due - today).days %}
+        {% if days < 0 %}{{ -days }} days overdue{% elif days == 0 %}Due today{% elif days == 1 %}Due tomorrow{% else %}In {{ days }} days{% endif %}
+      </span>
+    </article>
+    <article class="detail-card">
+      <span class="summary-label">Started</span>
+      <strong class="detail-value">{{ subscription.start_date.strftime("%b %d, %Y") }}</strong>
+      <span class="summary-foot">tracking since this date</span>
+    </article>
+  </section>
+
+  {% if subscription.notes %}
+    <section class="notes-card"><strong>Notes</strong><p>{{ subscription.notes }}</p></section>
+  {% endif %}
+
+  {% if subscription.active %}
+    <section class="content-section">
+      <div class="section-heading">
+        <div><h2>Record a payment</h2><p class="muted">This advances the next renewal by one billing period.</p></div>
+      </div>
+      <form class="payment-form" method="post" action="{{ url_for('add_payment', subscription_id=subscription.id) }}">
+        <label class="field"><span>Amount paid</span><input name="amount" type="number" min="0.01" step="0.01" required value="{{ subscription.amount }}"></label>
+        <label class="field"><span>Payment date</span><input name="paid_on" type="date" required value="{{ today.isoformat() }}"></label>
+        <label class="field payment-note"><span>Note</span><input name="note" maxlength="200" placeholder="Optional"></label>
+        <button class="button payment-submit" type="submit">Record payment</button>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="content-section">
+    <div class="section-heading">
+      <div><h2>Payment history</h2><p class="muted">Payments you have recorded for {{ subscription.name }}.</p></div>
+      <span class="count-pill">{{ payments|length }} {{ "payment" if payments|length == 1 else "payments" }}</span>
+    </div>
+    {% if payments %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Payment date</th><th>Amount</th><th>Note</th></tr></thead>
+          <tbody>
+            {% for payment in payments %}
+              <tr><td>{{ payment.paid_on.strftime("%b %d, %Y") }}</td><td><strong>{{ payment.currency }} {{ "%.2f"|format(payment.amount) }}</strong></td><td>{{ payment.note or "—" }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-card empty-card-compact"><h3>No payments recorded yet</h3><p>When you pay for this subscription, record it here to build your history.</p></div>
+    {% endif %}
+  </section>
+{% endblock %}

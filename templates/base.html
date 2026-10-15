@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Subtrack{% endblock %} · Subtrack</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('home') }}"><span class="brand-mark">S</span> Subtrack</a>
+    <nav aria-label="Main navigation">
+      <a href="{{ url_for('home') }}">Overview</a>
+      <a class="button button-small" href="{{ url_for('new_subscription') }}">+ Add subscription</a>
+    </nav>
+  </header>
+  <main class="container">
+    <div class="prototype-notice">
+      <span aria-hidden="true">ⓘ</span>
+      Prototype mode: changes are temporary and will be lost when the server stops.
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="flash-list" aria-live="polite">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">A personal place to keep recurring costs in view.</footer>
+</body>
+</html>

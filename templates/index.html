@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">YOUR MONEY, AT A GLANCE</p>
+      <h1>Subscription overview</h1>
+      <p class="muted">Keep renewals and recurring costs from catching you by surprise.</p>
+    </div>
+    <a class="button" href="{{ url_for('new_subscription') }}">+ Add subscription</a>
+  </section>
+
+  <section class="summary-grid" aria-label="Subscription summary">
+    <article class="summary-card">
+      <span class="summary-label">Active subscriptions</span>
+      <strong class="summary-value">{{ active_count }}</strong>
+      <span class="summary-foot">currently being tracked</span>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">Renewing in 30 days</span>
+      <strong class="summary-value">{{ upcoming|length }}</strong>
+      <span class="summary-foot">including overdue renewals</span>
+    </article>
+    <article class="summary-card summary-card-wide">
+      <span class="summary-label">Estimated monthly cost</span>
+      {% if monthly_totals %}
+        <div class="totals-list">
+          {% for currency, amount in monthly_totals|dictsort %}
+            <strong class="summary-value">{{ currency }} {{ "%.2f"|format(amount) }}</strong>
+          {% endfor %}
+        </div>
+        <span class="summary-foot">yearly plans are divided by 12; currencies stay separate</span>
+      {% else %}
+        <strong class="summary-value">—</strong>
+        <span class="summary-foot">add a subscription to see your estimate</span>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="content-section">
+    <div class="section-heading">
+      <div>
+        <h2>Coming up</h2>
+        <p class="muted">Your next renewals, including anything overdue.</p>
+      </div>
+    </div>
+    {% if upcoming %}
+      <div class="upcoming-list">
+        {% for subscription in upcoming %}
+          {% set days = (subscription.next_due - today).days %}
+          <a class="upcoming-item" href="{{ url_for('subscription_detail', subscription_id=subscription.id) }}">
+            <span class="service-icon">{{ subscription.name[:1]|upper }}</span>
+            <span class="upcoming-name">
+              <strong>{{ subscription.name }}</strong>
+              <small>{{ subscription.next_due.strftime("%b %d, %Y") }}</small>
+            </span>
+            <span class="due-label {% if days < 0 %}due-late{% elif days <= 7 %}due-soon{% endif %}">
+              {% if days < 0 %}{{ -days }} days overdue{% elif days == 0 %}Due today{% elif days == 1 %}Due tomorrow{% else %}In {{ days }} days{% endif %}
+            </span>
+            <strong class="upcoming-cost">{{ subscription.currency }} {{ "%.2f"|format(subscription.amount) }}</strong>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-card">
+        <span class="empty-icon">↗</span>
+        <h3>Nothing renewing soon</h3>
+        <p>Your active subscriptions due within 30 days will show up here.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="content-section">
+    <div class="section-heading">
+      <div>
+        <h2>All subscriptions</h2>
+        <p class="muted">Manage your active and cancelled plans.</p>
+      </div>
+      <span class="count-pill">{{ subscriptions|length }} total</span>
+    </div>
+    {% if subscriptions %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Subscription</th><th>Cost</th><th>Next renewal</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for subscription in subscriptions %}
+              <tr>
+                <td>
+                  <a class="service-name" href="{{ url_for('subscription_detail', subscription_id=subscription.id) }}">{{ subscription.name }}</a>
+                  <span class="table-subtext">{{ subscription.category or "Uncategorized" }}</span>
+                </td>
+                <td><strong>{{ subscription.currency }} {{ "%.2f"|format(subscription.amount) }}</strong><span class="table-subtext">/{{ subscription.frequency[0:2] }}</span></td>
+                <td>{{ subscription.next_due.strftime("%b %d, %Y") }}</td>
+                <td><span class="status-pill {% if not subscription.active %}status-inactive{% endif %}">{{ "Active" if subscription.active else "Cancelled" }}</span></td>
+                <td><a class="text-link" href="{{ url_for('subscription_detail', subscription_id=subscription.id) }}">View →</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-card empty-card-compact">
+        <h3>Your list is ready when you are</h3>
+        <p>Add a subscription to start tracking its cost, renewal date, and payments.</p>
+        <a class="button button-secondary" href="{{ url_for('new_subscription') }}">Add your first subscription</a>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

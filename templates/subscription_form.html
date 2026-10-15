@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit " ~ subscription.name if subscription else "Add subscription" }}{% endblock %}
+{% block content %}
+  {% set values = values or {} %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">SUBSCRIPTION DETAILS</p>
+      <h1>{{ "Edit subscription" if subscription else "Add a subscription" }}</h1>
+      <p class="muted">Enter the plan details so you can keep its next renewal in view.</p>
+    </div>
+  </section>
+  <form class="form-card" method="post">
+    <div class="form-grid">
+      <label class="field field-full">
+        <span>Subscription name <b>*</b></span>
+        <input name="name" required maxlength="100" placeholder="e.g. Music service" value="{{ values.get('name', subscription.name if subscription else '') }}">
+      </label>
+      <label class="field">
+        <span>Price <b>*</b></span>
+        <input name="amount" type="number" min="0.01" step="0.01" required placeholder="0.00" value="{{ values.get('amount', subscription.amount if subscription else '') }}">
+      </label>
+      <label class="field">
+        <span>Currency <b>*</b></span>
+        <input name="currency" required minlength="3" maxlength="3" pattern="[A-Za-z]{3}" placeholder="IDR" value="{{ values.get('currency', subscription.currency if subscription else 'IDR') }}">
+        <small>Use a three-letter code, such as IDR or USD.</small>
+      </label>
+      <label class="field">
+        <span>Billing frequency <b>*</b></span>
+        <select name="frequency" required>
+          {% set selected_frequency = values.get('frequency', subscription.frequency if subscription else 'monthly') %}
+          <option value="monthly" {{ "selected" if selected_frequency == "monthly" }}>Monthly</option>
+          <option value="yearly" {{ "selected" if selected_frequency == "yearly" }}>Yearly</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Category</span>
+        <input name="category" maxlength="60" placeholder="e.g. Entertainment" value="{{ values.get('category', subscription.category if subscription else '') }}">
+      </label>
+      <label class="field">
+        <span>Start date <b>*</b></span>
+        <input name="start_date" type="date" required value="{{ values.get('start_date', subscription.start_date.isoformat() if subscription else '') }}">
+      </label>
+      <label class="field">
+        <span>Next renewal date <b>*</b></span>
+        <input name="next_due" type="date" required value="{{ values.get('next_due', subscription.next_due.isoformat() if subscription else '') }}">
+      </label>
+      <label class="field field-full">
+        <span>Notes</span>
+        <textarea name="notes" rows="3" maxlength="500" placeholder="Optional details">{{ values.get('notes', subscription.notes if subscription else '') }}</textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <a class="button button-quiet" href="{{ url_for('subscription_detail', subscription_id=subscription.id) if subscription else url_for('home') }}">Cancel</a>
+      <button class="button" type="submit">{{ "Save changes" if subscription else "Add subscription" }}</button>
+    </div>
+  </form>
+{% endblock %}
