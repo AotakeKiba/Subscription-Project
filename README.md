@@ -15,9 +15,11 @@ python -m flask --app app run --debug
 
 Open `http://127.0.0.1:5000` in your browser.
 
-## Prototype storage
+## SQLite storage
 
-This first version keeps subscriptions and payments in memory. The data is lost when the Flask server stops or restarts. It is intended for local prototyping and does not include user accounts or production security. SQLite persistence can be added later.
+The app uses Python's built-in `sqlite3` module, so no additional database package or SQLite VS Code extension is needed. On the first page request, it creates `subscriptions.db` in the project folder and creates the `subscriptions` and `payments` tables if they do not already exist. Subscription and payment data remains in that file when the Flask server stops.
+
+The database file is excluded from Git so personal records are not committed. To inspect it visually, you can optionally install a SQLite viewer extension in VS Code; the app itself does not require one. This local prototype does not include user accounts or production security.
 
 ## Tests
 

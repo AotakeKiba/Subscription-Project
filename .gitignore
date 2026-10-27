@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+subscriptions.db
+subscriptions.db-journal
+subscriptions.db-wal
+subscriptions.db-shm
